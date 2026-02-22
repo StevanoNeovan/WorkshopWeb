@@ -66,7 +66,7 @@
           <table class="table table-hover">
             <thead>
               <tr>
-                <th>#</th>
+                <th>No</th>
                 <th>Nama Kategori</th>
                 <th>Jumlah Buku</th>
                 <th>Aksi</th>
@@ -77,7 +77,7 @@
               <tr>
                 <td>{{ $i + 1 }}</td>
                 <td>{{ $kategori->nama_kategori }}</td>
-                <td><label class="badge badge-gradient-info">{{ $kategori->bukus_count ?? 0 }}</label></td>
+                <td><label class="badge badge-gradient-info">{{ $kategori->buku_count ?? 0 }}</label></td>
                 <td>
                   <button class="btn btn-sm btn-gradient-warning"
                     data-bs-toggle="modal"

@@ -15,6 +15,12 @@ class Buku extends Model
     protected $table      = 'buku';
     protected $primaryKey = 'idbuku';
 
+    /**
+     * Matikan auto timestamps karena tabel tidak punya
+     * kolom created_at & updated_at.
+     */
+    public $timestamps = false;
+
     /*
     |--------------------------------------------------------------------------
     | MASS ASSIGNABLE
@@ -34,8 +40,6 @@ class Buku extends Model
     */
     protected $casts = [
         'idkategori' => 'integer',
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
     ];
 
     /*

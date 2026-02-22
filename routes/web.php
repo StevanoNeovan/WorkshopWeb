@@ -19,7 +19,7 @@ Route::middleware(['auth', 'check.session'])->group(function () {
     // Kategori CRUD (index, store, update, destroy)
     Route::resource('kategori', KategoriController::class)
         ->except(['show', 'create', 'edit']);
-
+    
     // Buku CRUD (index, store, update, destroy)
     Route::resource('buku', BukuController::class)
         ->except(['show', 'create', 'edit']);
