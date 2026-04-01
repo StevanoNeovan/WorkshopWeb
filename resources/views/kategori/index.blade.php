@@ -21,6 +21,13 @@
     </ol>
   </nav>
 </div>
+<div class="d-flex justify-content-end mb-3">
+  <a href="{{ route('pdf.laporan-kategori') }}"
+     class="btn btn-sm btn-gradient-danger"
+     title="Download Laporan Kategori (PDF Portrait)">
+    <i class="mdi mdi-file-pdf-box me-1"></i> Download Laporan Kategori (PDF)
+  </a>
+</div>
 
 @if(session('success'))
   <div class="alert alert-success alert-dismissible fade show" role="alert">

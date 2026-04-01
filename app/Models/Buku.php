@@ -7,96 +7,57 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Buku extends Model
 {
-    /*
-    |--------------------------------------------------------------------------
-    | TABLE & PRIMARY KEY
-    |--------------------------------------------------------------------------
-    */
     protected $table      = 'buku';
     protected $primaryKey = 'idbuku';
 
-    /**
-     * Matikan auto timestamps karena tabel tidak punya
-     * kolom created_at & updated_at.
-     */
-    public $timestamps = false;
+    // Gunakan kolom TIMESTAMP sebagai created_at, tidak ada updated_at
+    const CREATED_AT = 'TIMESTAMP';
+    const UPDATED_AT = null;
 
-    /*
-    |--------------------------------------------------------------------------
-    | MASS ASSIGNABLE
-    |--------------------------------------------------------------------------
-    */
     protected $fillable = [
         'kode',
         'judul',
         'pengarang',
         'idkategori',
+        'harga',
     ];
 
-    /*
-    |--------------------------------------------------------------------------
-    | CASTING
-    |--------------------------------------------------------------------------
-    */
     protected $casts = [
         'idkategori' => 'integer',
+        'harga'      => 'integer',
+        'TIMESTAMP'  => 'datetime',
     ];
 
-    /*
-    |--------------------------------------------------------------------------
-    | RELATIONSHIPS
-    |--------------------------------------------------------------------------
-    */
-
-    /**
-     * Setiap buku milik satu kategori.
-     */
     public function kategori(): BelongsTo
     {
         return $this->belongsTo(Kategori::class, 'idkategori', 'idkategori');
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | SCOPES
-    |--------------------------------------------------------------------------
-    */
-
-    /**
-     * Filter buku berdasarkan kategori.
-     */
     public function scopeByKategori($query, int $idkategori)
     {
         return $query->where('idkategori', $idkategori);
     }
 
-    /**
-     * Urutkan buku berdasarkan kode A-Z.
-     */
     public function scopeUrut($query)
     {
         return $query->orderBy('kode', 'asc');
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | ACCESSORS
-    |--------------------------------------------------------------------------
-    */
-
-    /**
-     * Kode buku selalu tampil uppercase.
-     */
     public function getKodeAttribute(string $value): string
     {
         return strtoupper($value);
     }
 
-    /**
-     * Nama pengarang selalu huruf kapital di awal setiap kata.
-     */
     public function getPengarangAttribute(string $value): string
     {
         return ucwords(strtolower($value));
+    }
+
+    /**
+     * Format harga ke Rupiah
+     */
+    public function getHargaFormattedAttribute(): string
+    {
+        return 'Rp ' . number_format($this->harga, 0, ',', '.');
     }
 }
