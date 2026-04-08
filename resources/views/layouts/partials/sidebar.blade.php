@@ -38,6 +38,23 @@
         <i class="mdi mdi-book-open-page-variant menu-icon"></i>
       </a>
     </li>
+    
+
+    {{-- Kasir --}}
+    <li class="nav-item {{ request()->routeIs('kasir.*') ? 'active' : '' }}">
+    <a class="nav-link" href="{{ route('kasir.index') }}">
+      <span class="menu-title">Kasir</span>
+      <i class="mdi mdi-cash-register menu-icon"></i>
+    </a>
+    </li>
+
+    {{-- Wilayah --}}
+     <li class="nav-item {{ request()->routeIs('wilayah.*') ? 'active' : '' }}">
+    <a class="nav-link" href="{{ route('wilayah.index') }}">
+      <span class="menu-title">Wilayah</span>
+      <i class="mdi mdi-map-marker menu-icon"></i>
+    </a>
+    </li>
 
   </ul>
 </nav>

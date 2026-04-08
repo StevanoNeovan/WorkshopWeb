@@ -6,6 +6,9 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\KategoriController;
 use App\Http\Controllers\BukuController;
 use App\Http\Controllers\PdfController;
+use App\Http\Controllers\KasirController;
+use App\Http\Controllers\WilayahController;
+    
 
 // Auth routes (login, register, logout, dll)
 Auth::routes();
@@ -26,6 +29,24 @@ Route::get('/otp', [SocialiteController::class, 'otpForm'])
 
 Route::post('/otp/verify', [SocialiteController::class, 'otpVerify'])
     ->name('otp.verify');
+
+use App\Http\Controllers\TokoController;
+ 
+// ============================================================
+// PUBLIC ROUTES - tidak perlu login (untuk guest/customer)
+// ============================================================
+Route::prefix('toko')->name('toko.')->group(function () {
+    Route::get('/',                [TokoController::class, 'index'])        ->name('index');
+    Route::get('/cari',            [TokoController::class, 'cariBuku'])     ->name('cari');
+    Route::get('/by-kategori',     [TokoController::class, 'bukuByKategori'])->name('by-kategori');
+    Route::post('/checkout',       [TokoController::class, 'checkout'])     ->name('checkout');
+    Route::get('/status/{kode}',   [TokoController::class, 'statusPesanan'])->name('status');
+});
+ 
+// Webhook Midtrans - CSRF exempt!
+Route::post('/toko/webhook', [TokoController::class, 'webhook'])
+    ->name('toko.webhook')
+    ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
 
 // Logout (override bawaan Laravel UI jika perlu)
 Route::post('/logout', [SocialiteController::class, 'logout'])
@@ -57,4 +78,18 @@ Route::middleware(['auth', 'check.session'])->group(function () {
     Route::get('/pdf/laporan-kategori', [PdfController::class, 'laporanKategori'])
         ->name('pdf.laporan-kategori');
 
+    Route::prefix('kasir')->name('kasir.')->group(function () {
+        Route::get('/',           [KasirController::class, 'index'])    ->name('index');
+        Route::get('/cari',       [KasirController::class, 'cariBuku']) ->name('cari');
+        Route::post('/bayar',     [KasirController::class, 'bayar'])    ->name('bayar');
+    });
+ 
+    Route::prefix('wilayah')->name('wilayah.')->group(function () {
+        Route::get('/',           [WilayahController::class, 'index'])     ->name('index');
+        Route::get('/provinsi',   [WilayahController::class, 'provinsi'])  ->name('provinsi');
+        Route::get('/kota',       [WilayahController::class, 'kota'])      ->name('kota');
+        Route::get('/kecamatan',  [WilayahController::class, 'kecamatan']) ->name('kecamatan');
+        Route::get('/kelurahan',  [WilayahController::class, 'kelurahan']) ->name('kelurahan');
+    });
 });
+
