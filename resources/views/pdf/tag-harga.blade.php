@@ -5,24 +5,22 @@
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
-    /*
-      TnJ No. 108 - ukuran terukur:
-      Label   : 38mm lebar x 18mm tinggi
-      Gap LR  : 3mm antar kolom
-      Gap TB  : 2mm antar baris
-      Margin  : 4mm semua sisi
-      Grid    : 5 kolom x 8 baris = 40 label
-
-      Lebar total: 5*38 + 4*3 = 202mm  (+4+4 margin = 210mm A4 ✓)
-      Tinggi label: 8*18 + 7*2 = 158mm (+4+4 margin = 166mm dari 297mm A4)
-    */
-    @page {
-      size: A4 portrait;
-      margin: 4mm 4mm 4mm 4mm;
-    }
-
     body {
       font-family: 'DejaVu Sans', sans-serif;
+    }
+
+    /*
+      Ukuran dari temanmu (presisi kertas TnJ 108):
+      Label   : 38mm x 18mm
+      Gap LR  : 3.3mm (column-gap)
+      Gap TB  : 2.3mm (row-gap)
+      Margin  : 2.3mm atas/bawah, 3.3mm kiri/kanan
+      Grid    : 5 kolom x 8 baris = 40 label
+    */
+    
+    @page {
+      size: A4 portrait;
+      margin: 2.3mm 3.3mm 2.3mm 3.3mm;
     }
 
     .page {
@@ -32,11 +30,15 @@
       page-break-after: avoid;
     }
 
-    /* Satu baris = tabel lebar penuh */
+    /*
+      DomPDF tidak support CSS Grid, pakai table.
+      Simulasikan column-gap: 3.3mm dengan sel spacer.
+      Simulasikan row-gap: 2.3mm dengan margin-bottom pada tiap row-table.
+    */
     .row-table {
-      width: 202mm;
+      width: 202.2mm; /* 5*38 + 4*3.3 = 203.2mm, sedikit adjust untuk DomPDF */
       border-collapse: collapse;
-      margin-bottom: 2mm;
+      margin-bottom: 2.3mm;
     }
     .row-table:last-child {
       margin-bottom: 0;
@@ -48,33 +50,32 @@
       border: 0.5px solid #999;
       vertical-align: middle;
       text-align: center;
-      padding: 1mm 1mm;
+      padding: 1mm;
       overflow: hidden;
     }
 
-    /* Gap 3mm antar kolom */
+    /* Sel spacer simulasi column-gap 3.3mm */
     .gap-cell {
-      width: 3mm;
+      width: 3.3mm;
       height: 18mm;
       border: none;
       padding: 0;
     }
 
-    .label-judul {
-      font-size: 5pt;
-      color: #222;
-      line-height: 1.4;
-      margin-bottom: 1mm;
+    .label-nama {
+      font-size: 7pt;
+      line-height: 1.2;
+      margin-bottom: 1px;
       overflow: hidden;
-      /* Batasi 2 baris: 2 x (5pt * 1.4) = ~14pt = ~5mm, sisakan 1mm untuk harga */
-      max-height: 7mm;
+      max-height: 8mm;
       word-break: break-word;
+      color: #222;
     }
 
     .label-harga {
-      font-size: 8pt;
+      font-size: 9pt;
       font-weight: bold;
-      color: #000;
+      color: #8500be;
       line-height: 1;
     }
   </style>
@@ -92,7 +93,7 @@
 
         <td class="label-cell">
           @if(!is_null($label))
-            <div class="label-judul">{{ $label['judul'] }}</div>
+            <div class="label-nama">{{ $label['judul'] }}</div>
             <div class="label-harga">Rp {{ number_format($label['harga'], 0, ',', '.') }}</div>
           @endif
         </td>

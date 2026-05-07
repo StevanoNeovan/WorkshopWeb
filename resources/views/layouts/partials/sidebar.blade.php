@@ -56,5 +56,18 @@
     </a>
     </li>
 
+    <li class="nav-item {{ request()->routeIs('toko.*') ? 'active' : '' }}">
+      <a class="nav-link" href="{{ route('toko.index') }}">
+        <span class="menu-title">Toko Buku</span>
+        <i class="mdi mdi-store menu-icon"></i>
+      </a>
+    </li>
+    <li class="nav-item {{ request()->routeIs('admin.pesanan') ? 'active' : '' }}">
+      <a class="nav-link" href="{{ route('admin.pesanan') }}">
+        <span class="menu-title">Pesanan Masuk</span>
+        <i class="mdi mdi-clipboard-list menu-icon"></i>
+      </a>
+    </li>
+
   </ul>
 </nav>
