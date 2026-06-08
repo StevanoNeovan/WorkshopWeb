@@ -6,6 +6,7 @@ use App\Models\Buku;
 use App\Models\Kategori;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Picqer\Barcode\BarcodeGeneratorPNG;
 
 class BukuController extends Controller
 {
@@ -91,70 +92,84 @@ class BukuController extends Controller
             ->with('success', 'Buku "' . $judul . '" berhasil dihapus.');
     }
 
+// Ganti method tagHarga() di app/Http/Controllers/BukuController.php
+// use statement di atas class:
+// use Picqer\Barcode\BarcodeGeneratorPNG;
+ 
+public function tagHarga(Request $request)
+{
+    $request->validate([
+        'buku_ids'   => ['required', 'array', 'min:1'],
+        'buku_ids.*' => ['exists:buku,idbuku'],
+        'start_x'    => ['required', 'integer', 'min:1', 'max:5'],
+        'start_y'    => ['required', 'integer', 'min:1', 'max:8'],
+    ], [
+        'buku_ids.required' => 'Pilih minimal 1 buku.',
+    ]);
+ 
+    $bukus      = Buku::with('kategori')->whereIn('idbuku', $request->buku_ids)->get();
+    $startX     = (int) $request->start_x;
+    $startY     = (int) $request->start_y;
+    $startIndex = ($startY - 1) * 5 + ($startX - 1);
+ 
+    $generator = new BarcodeGeneratorPNG();
+ 
     /**
-     * Generate PDF tag harga untuk label kertas TnJ No. 108
-     * Layout: 5 kolom x 8 baris = 40 label per halaman
-     * User memilih buku via checkbox dan input koordinat X,Y awal
+     * Helper: generate barcode PNG base64 dari kode buku
+     * Barcode dibuat dari kolom 'kode' (misal: 001, 002, NV-01)
      */
-    public function tagHarga(Request $request)
-    {
-        $request->validate([
-            'buku_ids' => ['required', 'array', 'min:1'],
-            'buku_ids.*' => ['exists:buku,idbuku'],
-            'start_x'  => ['required', 'integer', 'min:1', 'max:5'],
-            'start_y'  => ['required', 'integer', 'min:1', 'max:8'],
-        ], [
-            'buku_ids.required' => 'Pilih minimal 1 buku.',
-            'start_x.required'  => 'Koordinat X wajib diisi.',
-            'start_y.required'  => 'Koordinat Y wajib diisi.',
-        ]);
-
-        $bukus   = Buku::with('kategori')->whereIn('idbuku', $request->buku_ids)->get();
-        $startX  = (int) $request->start_x; // kolom 1-5
-        $startY  = (int) $request->start_y; // baris 1-8
-
-        // Buat array 40 slot (index 0-39), isi null dulu
-        // Posisi = (baris-1)*5 + (kolom-1)
-        $startIndex = ($startY - 1) * 5 + ($startX - 1);
-
-        // Bangun array label: null untuk slot kosong, data buku untuk slot terisi
-        $labels = array_fill(0, 40, null);
-        $bukuList = $bukus->values()->toArray();
-
-        for ($i = 0; $i < count($bukuList); $i++) {
-            $pos = $startIndex + $i;
-            if ($pos < 40) {
-                $labels[$pos] = $bukuList[$i];
-            }
+    $makeBarcode = function (string $kode) use ($generator): string {
+        return base64_encode(
+            $generator->getBarcode(
+                strtoupper($kode),
+                BarcodeGeneratorPNG::TYPE_CODE_128,
+                1,   // width factor per bar
+                35   // height px
+            )
+        );
+    };
+ 
+    $labels   = array_fill(0, 40, null);
+    $bukuList = $bukus->values()->toArray();
+ 
+    for ($i = 0; $i < count($bukuList); $i++) {
+        $pos = $startIndex + $i;
+        if ($pos < 40) {
+            $buku = $bukuList[$i];
+            $labels[$pos] = array_merge($buku, [
+                'barcode_png' => $makeBarcode($buku['kode']),
+            ]);
         }
-
-        // Jika buku melebihi sisa slot halaman pertama, buat halaman tambahan
-        $pages   = [];
-        $pages[] = $labels;
-
-        $overflow = [];
-        for ($i = 0; $i < count($bukuList); $i++) {
-            $pos = $startIndex + $i;
-            if ($pos >= 40) {
-                $overflow[] = $bukuList[$i];
-            }
-        }
-
-        // Halaman berikutnya: mulai dari slot 0
-        $chunkSize = 40;
-        foreach (array_chunk($overflow, $chunkSize) as $chunk) {
-            $page = array_fill(0, 40, null);
-            foreach ($chunk as $idx => $b) {
-                $page[$idx] = $b;
-            }
-            $pages[] = $page;
-        }
-
-        $pdf = Pdf::loadView('pdf.tag-harga', compact('pages'))
-            ->setPaper([0, 0, 595.28, 841.89], 'portrait') // A4
-            ->setOption('dpi', 150)
-            ->setOption('isHtml5ParserEnabled', true);
-
-        return $pdf->download('tag-harga-buku-' . now()->format('Ymd') . '.pdf');
     }
+ 
+    // Overflow ke halaman berikutnya
+    $pages    = [];
+    $pages[]  = $labels;
+    $overflow = [];
+ 
+    for ($i = 0; $i < count($bukuList); $i++) {
+        if (($startIndex + $i) >= 40) {
+            $buku       = $bukuList[$i];
+            $overflow[] = array_merge($buku, [
+                'barcode_png' => $makeBarcode($buku['kode']),
+            ]);
+        }
+    }
+ 
+    foreach (array_chunk($overflow, 40) as $chunk) {
+        $page = array_fill(0, 40, null);
+        foreach ($chunk as $idx => $b) {
+            $page[$idx] = $b;
+        }
+        $pages[] = $page;
+    }
+ 
+    $pdf = Pdf::loadView('pdf.tag-harga', compact('pages'))
+        ->setPaper([0, 0, 595.28, 841.89], 'portrait')
+        ->setOption('dpi', 150)
+        ->setOption('isHtml5ParserEnabled', true)
+        ->setOption('isRemoteEnabled', true);
+ 
+    return $pdf->download('tag-harga-buku-' . now()->format('Ymd') . '.pdf');
+}
 }

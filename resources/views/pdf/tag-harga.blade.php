@@ -4,45 +4,21 @@
   <meta charset="UTF-8">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'DejaVu Sans', sans-serif; }
 
-    body {
-      font-family: 'DejaVu Sans', sans-serif;
-    }
-
-    /*
-      Ukuran dari temanmu (presisi kertas TnJ 108):
-      Label   : 38mm x 18mm
-      Gap LR  : 3.3mm (column-gap)
-      Gap TB  : 2.3mm (row-gap)
-      Margin  : 2.3mm atas/bawah, 3.3mm kiri/kanan
-      Grid    : 5 kolom x 8 baris = 40 label
-    */
-    
     @page {
       size: A4 portrait;
       margin: 2.3mm 3.3mm 2.3mm 3.3mm;
     }
+    .page { page-break-after: always; }
+    .page:last-child { page-break-after: avoid; }
 
-    .page {
-      page-break-after: always;
-    }
-    .page:last-child {
-      page-break-after: avoid;
-    }
-
-    /*
-      DomPDF tidak support CSS Grid, pakai table.
-      Simulasikan column-gap: 3.3mm dengan sel spacer.
-      Simulasikan row-gap: 2.3mm dengan margin-bottom pada tiap row-table.
-    */
     .row-table {
-      width: 202.2mm; /* 5*38 + 4*3.3 = 203.2mm, sedikit adjust untuk DomPDF */
+      width: 202.2mm;
       border-collapse: collapse;
       margin-bottom: 2.3mm;
     }
-    .row-table:last-child {
-      margin-bottom: 0;
-    }
+    .row-table:last-child { margin-bottom: 0; }
 
     .label-cell {
       width: 38mm;
@@ -50,11 +26,9 @@
       border: 0.5px solid #999;
       vertical-align: middle;
       text-align: center;
-      padding: 1mm;
+      padding: 0.5mm 1mm;
       overflow: hidden;
     }
-
-    /* Sel spacer simulasi column-gap 3.3mm */
     .gap-cell {
       width: 3.3mm;
       height: 18mm;
@@ -62,18 +36,36 @@
       padding: 0;
     }
 
+    .barcode-img {
+      display: block;
+      margin: 0 auto 0.3mm;
+      width: 34mm;
+      height: 6mm;
+    }
+
+    /* Kode buku (001, 002, dst) di bawah barcode */
+    .label-kode {
+      font-size: 5pt;
+      color: #444;
+      line-height: 1;
+      margin-bottom: 0.5mm;
+      letter-spacing: 0.5px;
+    }
+
+    /* Judul dipotong max ~20 karakter lalu ... */
     .label-nama {
-      font-size: 7pt;
+      font-size: 5.5pt;
       line-height: 1.2;
-      margin-bottom: 1px;
-      overflow: hidden;
-      max-height: 8mm;
-      word-break: break-word;
       color: #222;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      max-width: 34mm;
+      margin: 0 auto 0.3mm;
     }
 
     .label-harga {
-      font-size: 9pt;
+      font-size: 8pt;
       font-weight: bold;
       color: #8500be;
       line-height: 1;
@@ -93,7 +85,17 @@
 
         <td class="label-cell">
           @if(!is_null($label))
-            <div class="label-nama">{{ $label['judul'] }}</div>
+            {{-- Barcode PNG dari kode buku --}}
+            <img class="barcode-img"
+              src="data:image/png;base64,{{ $label['barcode_png'] }}"
+              alt="{{ $label['kode'] }}">
+
+            {{-- Kode buku (001, 002, dst) --}}
+            <div class="label-kode">{{ $label['kode'] }}</div>
+
+            {{-- Judul dipotong max 22 karakter --}}
+            <div class="label-nama">{{ mb_strlen($label['judul']) > 22 ? mb_substr($label['judul'], 0, 22).'...' : $label['judul'] }}</div>
+
             <div class="label-harga">Rp {{ number_format($label['harga'], 0, ',', '.') }}</div>
           @endif
         </td>

@@ -1,4 +1,4 @@
-{{-- ===================== SIDEBAR ===================== --}}
+
 <nav class="sidebar sidebar-offcanvas" id="sidebar">
   <ul class="nav">
     <li class="nav-item nav-profile">
@@ -68,6 +68,37 @@
         <i class="mdi mdi-clipboard-list menu-icon"></i>
       </a>
     </li>
+    
+
+ <li class="nav-item {{ request()->routeIs('customer.*') ? 'active' : '' }}">
+   <a class="nav-link" href="#customerSub" data-bs-toggle="collapse">
+     <span class="menu-title">Customer</span>
+     <i class="mdi mdi-account-group menu-icon"></i>
+   </a>
+   <div class="collapse {{ request()->routeIs('customer.*') ? 'show' : '' }}" id="customerSub">
+     <ul class="nav flex-column sub-menu">
+       <li class="nav-item">
+         <a class="nav-link {{ request()->routeIs('customer.index') ? 'active' : '' }}"
+           href="{{ route('customer.index') }}">Data Customer</a>
+       </li>
+       <li class="nav-item">
+         <a class="nav-link {{ request()->routeIs('customer.tambah1') ? 'active' : '' }}"
+           href="{{ route('customer.tambah1') }}">Tambah Customer 1</a>
+       </li>
+       <li class="nav-item">
+         <a class="nav-link {{ request()->routeIs('customer.tambah2') ? 'active' : '' }}"
+           href="{{ route('customer.tambah2') }}">Tambah Customer 2</a>
+       </li>
+     </ul>
+   </div>
+   </li>
+
+   <li class="nav-item {{ request()->routeIs('scanner.*') ? 'active' : '' }}">
+      <a class="nav-link" href="{{ route('scanner.index') }}">
+        <span class="menu-title">Scanner Barcode</span>
+        <i class="mdi mdi-barcode-scan menu-icon"></i>
+      </a>
+   </li>
 
   </ul>
 </nav>

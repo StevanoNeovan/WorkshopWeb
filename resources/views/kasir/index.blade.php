@@ -382,11 +382,30 @@ function formatRupiah(num) {
       data: JSON.stringify({ _token: CSRF, items, total }),
       contentType: 'application/json',
       success: function (res) {
-        Swal.fire('Berhasil!', `Transaksi ${res.data.id_penjualan} senilai ${res.data.total_fmt} berhasil disimpan.`, 'success');
-        jqCart = [];
-        jqRenderTable();
-        jqResetForm();
-      },
+    const d = res.data;
+ 
+    // Tampilkan QR Code dalam SweetAlert2
+    Swal.fire({
+        title: 'Pembayaran Berhasil!',
+        html: `
+            <div style="text-align:center">
+                <p class="mb-2"><b>ID Transaksi:</b> #${d.id_penjualan}</p>
+                <p class="mb-3"><b>Total:</b> ${d.total_fmt}</p>
+                <img src="data:image/png;base64,${d.qr_base64}"
+                    alt="QR Code"
+                    style="width:160px;height:160px;margin:0 auto;display:block;border:4px solid #f5f0e8;border-radius:8px;">
+                <p class="mt-2 text-muted" style="font-size:.78rem">Scan QR untuk verifikasi transaksi</p>
+            </div>`,
+        icon: 'success',
+        confirmButtonColor: '#6c3483',
+        confirmButtonText: 'Selesai',
+    });
+ 
+    jqCart = [];
+    jqRenderTable();
+    jqResetForm();
+    btn.prop('disabled', false).html('<i class="mdi mdi-cash me-1"></i> Bayar');
+},
       error: function (xhr) {
         const msg = xhr.responseJSON?.message ?? 'Terjadi kesalahan.';
         Swal.fire('Gagal!', msg, 'error');
@@ -544,13 +563,29 @@ function formatRupiah(num) {
     btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Memproses...';
 
     axios.post(BAYAR_URL, { items, total })
-      .then(function (response) {
-        const d = response.data.data;
-        Swal.fire('Berhasil!', `Transaksi ${d.id_penjualan} senilai ${d.total_fmt} berhasil disimpan.`, 'success');
-        axCart = [];
-        axRenderTable();
-        axResetForm();
-      })
+      .then(res => {
+    const d = res.data.data;
+ 
+    Swal.fire({
+        title: 'Pembayaran Berhasil!',
+        html: `
+            <div style="text-align:center">
+                <p class="mb-2"><b>ID Transaksi:</b> #${d.id_penjualan}</p>
+                <p class="mb-3"><b>Total:</b> ${d.total_fmt}</p>
+                <img src="data:image/png;base64,${d.qr_base64}"
+                    alt="QR Code"
+                    style="width:160px;height:160px;margin:0 auto;display:block;border:4px solid #f5f0e8;border-radius:8px;">
+                <p class="mt-2 text-muted" style="font-size:.78rem">Scan QR untuk verifikasi transaksi</p>
+            </div>`,
+        icon: 'success',
+        confirmButtonColor: '#6c3483',
+        confirmButtonText: 'Selesai',
+    });
+ 
+    axCart = [];
+    axRenderTable();
+    axResetForm();
+})
       .catch(function (error) {
         const msg = error.response?.data?.message ?? 'Terjadi kesalahan.';
         Swal.fire('Gagal!', msg, 'error');

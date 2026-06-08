@@ -10,6 +10,8 @@ use App\Http\Controllers\KasirController;
 use App\Http\Controllers\WilayahController;
 use App\Http\Controllers\SocialiteController;
 use App\Http\Controllers\TokoController;
+use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\ScannerController;
 
 // ============================================================
 // AUTH ROUTES
@@ -84,5 +86,22 @@ Route::middleware(['auth', 'check.session'])->group(function () {
 
     // Admin - pesanan masuk (toko)
     Route::get('/admin/pesanan', [TokoController::class, 'pesananAdmin'])->name('admin.pesanan');
+
+    
+    
+    // Customer - SC3
+    Route::prefix('customer')->name('customer.')->group(function () {
+        Route::get('/',              [CustomerController::class, 'index'])       ->name('index');
+        Route::get('/tambah1',       [CustomerController::class, 'tambah1Form']) ->name('tambah1');
+        Route::post('/tambah1',      [CustomerController::class, 'tambah1Store'])->name('tambah1.store');
+        Route::get('/tambah2',       [CustomerController::class, 'tambah2Form']) ->name('tambah2');
+        Route::post('/tambah2',      [CustomerController::class, 'tambah2Store'])->name('tambah2.store');
+        Route::delete('/{customer}', [CustomerController::class, 'destroy'])     ->name('destroy');
+    });
+ 
+    Route::prefix('scanner')->name('scanner.')->group(function () {
+        Route::get('/',      [ScannerController::class, 'index'])    ->name('index');
+        Route::get('/cari',  [ScannerController::class, 'cariBuku']) ->name('cari');
+    });
 
 });
